@@ -13,9 +13,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 
-import com.example.cwong.nytimessearch.Article;
 import com.example.cwong.nytimessearch.ArticleArrayAdapter;
 import com.example.cwong.nytimessearch.R;
+import com.example.cwong.nytimessearch.models.Article;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -24,15 +24,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
 import cz.msebera.android.httpclient.Header;
 
 public class SearchActivity extends AppCompatActivity {
-
+    private final int REQUEST_SETTINGS_CODE = 50;
+    String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     EditText etQuery;
     GridView gvResults;
     Button btnSearch;
+    Toolbar toolbar;
 
     ArrayList<Article> articles;
     ArticleArrayAdapter adapter;
@@ -41,7 +47,7 @@ public class SearchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setupViews();
     }
@@ -82,6 +88,8 @@ public class SearchActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivityForResult(i, REQUEST_SETTINGS_CODE);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -90,7 +98,7 @@ public class SearchActivity extends AppCompatActivity {
     public void onArticleSearch(View view) {
         String query = etQuery.getText().toString();
         AsyncHttpClient client = new AsyncHttpClient();
-        String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
+        url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
 
         RequestParams params = new RequestParams();
         params.put("api-key", "86aa25661ed0464cb226e368461d527d");
@@ -104,6 +112,7 @@ public class SearchActivity extends AppCompatActivity {
 
                 try {
                     articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
+                    adapter.clear();
                     adapter.addAll(Article.fromJSONArray(articleJsonResults));
                     Log.d("DEBUG", articles.toString());
                 } catch (JSONException e) {
@@ -112,4 +121,58 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_SETTINGS_CODE) {
+            String dateString = data.getStringExtra("date");
+            String sortOrder = data.getStringExtra("sortOrder");
+            ArrayList<String> newsArrayValues = data.getStringArrayListExtra("newsDesk");
+            RequestParams params = new RequestParams();
+            params.put("api-key", "86aa25661ed0464cb226e368461d527d");
+            params.put("page", 0);
+            params.put("beginDate", formatDateQuery(dateString));
+            params.put("sort", sortOrder);
+            params.put("q", etQuery.getText().toString());
+
+            StringBuilder newsDeskQuery = new StringBuilder();
+            for (String s : newsArrayValues)
+                newsDeskQuery.append(s + " ");
+            params.put("fq", newsDeskQuery);
+
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.get(url, params, new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    JSONArray articleJsonResults = null;
+
+                    try {
+                        articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
+                        adapter.clear();
+                        adapter.addAll(Article.fromJSONArray(articleJsonResults));
+                        Log.d("DEBUG", articles.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+    public String formatDateQuery(String dateString) {
+        String format = "MM/dd/yyyy";
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
+        final Calendar c = Calendar.getInstance();
+
+        try {
+            c.setTime(sdf.parse(dateString));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+        return "" + year + month + day;
+    }
+
 }

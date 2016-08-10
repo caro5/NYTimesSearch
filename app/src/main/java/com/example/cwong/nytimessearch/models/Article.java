@@ -1,4 +1,4 @@
-package com.example.cwong.nytimessearch;
+package com.example.cwong.nytimessearch.models;
 
 import org.json.JSONArray;
 import org.json.JSONException;
