@@ -91,6 +91,10 @@ public class SearchActivity extends AppCompatActivity {
         gvResults.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
+                if (page == 5) {
+                    Toast.makeText(getApplicationContext(), "Reached max articles", Toast.LENGTH_LONG).show();
+                    return true;
+                }
                 queryPage = page;
                 articleSearch();
                 return true;
