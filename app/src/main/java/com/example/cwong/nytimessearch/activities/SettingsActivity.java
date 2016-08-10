@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -29,6 +30,9 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
     CheckBox checkArts;
     CheckBox checkFashionStyle;
     CheckBox checkSports;
+    String date;
+    String sortOrder;
+    ArrayList<String> newsDeskValues;
 
     public void showDatePickerDialog(View v) {
         DatePickerFragment newFragment = new DatePickerFragment();
@@ -82,14 +86,13 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
                 }
             }
         };
-
-
         checkArts.setOnCheckedChangeListener(checkListener);
         checkFashionStyle.setOnCheckedChangeListener(checkListener);
         checkSports.setOnCheckedChangeListener(checkListener);
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -103,6 +106,25 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
         setSupportActionBar(toolbar);
         setupCheckboxes();
 
+        Intent i = getIntent();
+        newsDeskValues = i.getStringArrayListExtra("newsDeskValues");
+        date = i.getStringExtra("date");
+        sortOrder = i.getStringExtra("sortOrder");
+        if (date.length() > 0) {
+            etDate.setText(date);
+        }
+        spinner.setSelection(((ArrayAdapter<String>)spinner.getAdapter()).getPosition(sortOrder));
+
+        if (newsDeskValues.contains(checkArts.getText().toString())) {
+            checkArts.setChecked(true);
+        }
+        if (newsDeskValues.contains(checkFashionStyle.getText().toString())) {
+            checkFashionStyle.setChecked(true);
+        }
+        if (newsDeskValues.contains(checkSports.getText().toString())) {
+            checkSports.setChecked(true);
+        }
+
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,14 +132,13 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
             }
         });
 
-
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent data = new Intent();
                 data.putExtra("date", etDate.getText().toString());
 
-                String value = spinner.getSelectedItem().toString().toLowerCase();
+                String value = spinner.getSelectedItem().toString();
                 data.putExtra("sortOrder", value);
 
                 data.putStringArrayListExtra("newsDesk", checkedValues);

@@ -1,18 +1,21 @@
 package com.example.cwong.nytimessearch.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import com.example.cwong.nytimessearch.ArticleArrayAdapter;
 import com.example.cwong.nytimessearch.EndlessScrollListener;
@@ -26,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,15 +43,14 @@ public class SearchActivity extends AppCompatActivity {
     String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     int queryPage = 0;
 
-    EditText etQuery;
     GridView gvResults;
-    Button btnSearch;
     Toolbar toolbar;
     AsyncHttpClient client;
 
     ArrayList<Article> articles;
     ArticleArrayAdapter adapter;
 
+    String queryTerm;
     String dateString;
     String sortOrder;
     ArrayList<String> newsArrayValues;
@@ -61,14 +64,14 @@ public class SearchActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         dateString = "";
         sortOrder = "";
+        queryTerm = "";
         newsArrayValues = new ArrayList<>();
         setupViews();
+
     }
 
     public void setupViews() {
-        etQuery = (EditText) findViewById(R.id.etQuery);
         gvResults = (GridView) findViewById(R.id.gvResults);
-        btnSearch = (Button) findViewById(R.id.btnSearch);
         articles = new ArrayList<>();
         adapter = new ArticleArrayAdapter(this, articles);
         gvResults.setAdapter(adapter);
@@ -98,7 +101,29 @@ public class SearchActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
-        return true;
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // perform query here
+                queryTerm = query;
+                adapter.clear();
+                queryPage = 0;
+                articleSearch();
+                // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
+                // see https://code.google.com/p/android/issues/detail?id=24599
+                searchView.clearFocus();
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -111,31 +136,31 @@ public class SearchActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+            i.putExtra("date", dateString);
+            i.putExtra("sortOrder", sortOrder);
+            i.putStringArrayListExtra("newsDeskValues", newsArrayValues);
             startActivityForResult(i, REQUEST_SETTINGS_CODE);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public void onNewArticleSearch(View v) {
-        adapter.clear();
-        queryPage = 0;
-        articleSearch();
-    }
-
     public void articleSearch() {
-        String query = etQuery.getText().toString();
+        if (!isOnline() || !isNetworkAvailable()) {
+            Toast.makeText(this, "Device connected to the internet", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         RequestParams params = new RequestParams();
         params.put("api-key", "86aa25661ed0464cb226e368461d527d");
         params.put("page", queryPage);
-        params.put("q", query);
+        params.put("q", queryTerm);
 
         if (dateString.length() > 0) {
             params.put("beginDate", formatDateQuery(dateString));
         }
         if (sortOrder.length() > 0) {
-            params.put("sort", sortOrder);
+            params.put("sort", sortOrder.toLowerCase());
         }
         if (newsArrayValues.size() > 0) {
             String newsDeskQuery = TextUtils.join(" ", newsArrayValues);
@@ -145,11 +170,9 @@ public class SearchActivity extends AppCompatActivity {
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                JSONArray articleJsonResults = null;
                 try {
-                    articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
+                    JSONArray articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
                     adapter.addAll(Article.fromJSONArray(articleJsonResults));
-                    Log.d("DEBUG", articles.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -172,6 +195,7 @@ public class SearchActivity extends AppCompatActivity {
             articleSearch();
         }
     }
+
     public String formatDateQuery(String dateString) {
         String format = "MM/dd/yyyy";
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
@@ -187,5 +211,20 @@ public class SearchActivity extends AppCompatActivity {
         int day = c.get(Calendar.DAY_OF_MONTH);
         return "" + year + month + day;
     }
-
+    public boolean isOnline() {
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int     exitValue = ipProcess.waitFor();
+            return (exitValue == 0);
+        } catch (IOException e)          { e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        return false;
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
 }
