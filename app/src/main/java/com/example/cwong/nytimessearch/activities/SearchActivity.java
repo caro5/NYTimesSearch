@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.example.cwong.nytimessearch.ArticleArrayAdapter;
+import com.example.cwong.nytimessearch.EndlessScrollListener;
 import com.example.cwong.nytimessearch.R;
 import com.example.cwong.nytimessearch.models.Article;
 import com.loopj.android.http.AsyncHttpClient;
@@ -35,13 +37,21 @@ import cz.msebera.android.httpclient.Header;
 public class SearchActivity extends AppCompatActivity {
     private final int REQUEST_SETTINGS_CODE = 50;
     String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
+    int queryPage = 0;
+
     EditText etQuery;
     GridView gvResults;
     Button btnSearch;
     Toolbar toolbar;
+    AsyncHttpClient client;
 
     ArrayList<Article> articles;
     ArticleArrayAdapter adapter;
+
+    String dateString;
+    String sortOrder;
+    ArrayList<String> newsArrayValues;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +59,9 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        dateString = "";
+        sortOrder = "";
+        newsArrayValues = new ArrayList<>();
         setupViews();
     }
 
@@ -59,6 +72,7 @@ public class SearchActivity extends AppCompatActivity {
         articles = new ArrayList<>();
         adapter = new ArticleArrayAdapter(this, articles);
         gvResults.setAdapter(adapter);
+        client = new AsyncHttpClient();
 
         //hook up listener for grid click
         gvResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -69,6 +83,14 @@ public class SearchActivity extends AppCompatActivity {
                 Article article = articles.get(position);
                 i.putExtra("article", article);
                 startActivity(i);
+            }
+        });
+        gvResults.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                queryPage = page;
+                articleSearch();
+                return true;
             }
         });
     }
@@ -95,68 +117,59 @@ public class SearchActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void onArticleSearch(View view) {
+    public void onNewArticleSearch(View v) {
+        adapter.clear();
+        queryPage = 0;
+        articleSearch();
+    }
+
+    public void articleSearch() {
         String query = etQuery.getText().toString();
-        AsyncHttpClient client = new AsyncHttpClient();
-        url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
 
         RequestParams params = new RequestParams();
         params.put("api-key", "86aa25661ed0464cb226e368461d527d");
-        params.put("page", 0);
+        params.put("page", queryPage);
         params.put("q", query);
+
+        if (dateString.length() > 0) {
+            params.put("beginDate", formatDateQuery(dateString));
+        }
+        if (sortOrder.length() > 0) {
+            params.put("sort", sortOrder);
+        }
+        if (newsArrayValues.size() > 0) {
+            String newsDeskQuery = TextUtils.join(" ", newsArrayValues);
+            params.put("fq", "news_desk:(" + newsDeskQuery + ")");
+        }
 
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 JSONArray articleJsonResults = null;
-
                 try {
                     articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
-                    adapter.clear();
                     adapter.addAll(Article.fromJSONArray(articleJsonResults));
                     Log.d("DEBUG", articles.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+            }
         });
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == REQUEST_SETTINGS_CODE) {
-            String dateString = data.getStringExtra("date");
-            String sortOrder = data.getStringExtra("sortOrder");
-            ArrayList<String> newsArrayValues = data.getStringArrayListExtra("newsDesk");
-            RequestParams params = new RequestParams();
-            params.put("api-key", "86aa25661ed0464cb226e368461d527d");
-            params.put("page", 0);
-            params.put("beginDate", formatDateQuery(dateString));
-            params.put("sort", sortOrder);
-            params.put("q", etQuery.getText().toString());
-
-            StringBuilder newsDeskQuery = new StringBuilder();
-            for (String s : newsArrayValues)
-                newsDeskQuery.append(s + " ");
-            params.put("fq", newsDeskQuery);
-
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(url, params, new JsonHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                    JSONArray articleJsonResults = null;
-
-                    try {
-                        articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
-                        adapter.clear();
-                        adapter.addAll(Article.fromJSONArray(articleJsonResults));
-                        Log.d("DEBUG", articles.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+            dateString = data.getStringExtra("date");
+            sortOrder = data.getStringExtra("sortOrder");
+            newsArrayValues = data.getStringArrayListExtra("newsDesk");
+            queryPage = 0;
+            adapter.clear();
+            articleSearch();
         }
     }
     public String formatDateQuery(String dateString) {
