@@ -15,7 +15,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.cwong.nytimessearch.R;
-import com.example.cwong.nytimessearch.fragments.DatePickerFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,13 +33,13 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
     String sortOrder;
     ArrayList<String> newsDeskValues;
 
-    public void showDatePickerDialog(View v) {
-        DatePickerFragment newFragment = new DatePickerFragment();
-        Bundle args = new Bundle();
-        args.putString("date", etDate.getText().toString());
-        newFragment.setArguments(args);
-        newFragment.show(getFragmentManager(), "datePicker");
-    }
+//    public void showDatePickerDialog(View v) {
+//        DatePickerFragment newFragment = new DatePickerFragment();
+//        Bundle args = new Bundle();
+//        args.putString("date", etDate.getText().toString());
+//        newFragment.setArguments(args);
+//        newFragment.show(this, "datePicker");
+//    }
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {
@@ -128,7 +127,7 @@ public class SettingsActivity extends AppCompatActivity implements DatePickerDia
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDatePickerDialog(v);
+                // showDatePickerDialog(v);
             }
         });
 

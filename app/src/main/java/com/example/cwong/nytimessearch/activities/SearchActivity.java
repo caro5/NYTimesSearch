@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.example.cwong.nytimessearch.ArticleArrayAdapter;
 import com.example.cwong.nytimessearch.EndlessScrollListener;
 import com.example.cwong.nytimessearch.R;
+import com.example.cwong.nytimessearch.fragments.SettingsFragment;
 import com.example.cwong.nytimessearch.models.Article;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -38,7 +40,7 @@ import java.util.Locale;
 
 import cz.msebera.android.httpclient.Header;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements SettingsFragment.SettingsDialogListener{
     private final int REQUEST_SETTINGS_CODE = 50;
     String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     int queryPage = 0;
@@ -139,11 +141,9 @@ public class SearchActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
-            i.putExtra("date", dateString);
-            i.putExtra("sortOrder", sortOrder);
-            i.putStringArrayListExtra("newsDeskValues", newsArrayValues);
-            startActivityForResult(i, REQUEST_SETTINGS_CODE);
+            FragmentManager fm = getSupportFragmentManager();
+            SettingsFragment settingsFragment = SettingsFragment.newInstance(dateString, sortOrder, newsArrayValues);
+            settingsFragment.show(fm, "fragment_settings");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -187,7 +187,14 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
-
+    public void onFinishSettingsDialog(String date, String sortOrderString, ArrayList<String> newsDeskValues) {
+        dateString = date;
+        sortOrder = sortOrderString;
+        newsArrayValues = newsDeskValues;
+        queryPage = 0;
+        adapter.clear();
+        articleSearch();
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == REQUEST_SETTINGS_CODE) {
