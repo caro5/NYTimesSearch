@@ -8,18 +8,19 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.Toast;
 
 import com.example.cwong.nytimessearch.ArticleArrayAdapter;
-import com.example.cwong.nytimessearch.EndlessScrollListener;
+import com.example.cwong.nytimessearch.EndlessRecyclerViewScrollListener;
+import com.example.cwong.nytimessearch.ItemClickSupport;
 import com.example.cwong.nytimessearch.R;
 import com.example.cwong.nytimessearch.fragments.SettingsFragment;
 import com.example.cwong.nytimessearch.models.Article;
@@ -40,12 +41,15 @@ import java.util.Locale;
 
 import cz.msebera.android.httpclient.Header;
 
-public class SearchActivity extends AppCompatActivity implements SettingsFragment.SettingsDialogListener{
-    private final int REQUEST_SETTINGS_CODE = 50;
+public class SearchActivity extends AppCompatActivity implements SettingsFragment.SettingsDialogListener {
+//    @BindView(R.id.rvArticles) RecyclerView rArticles;
+//    @BindView(R.id.subtitle) TextView subtitle;
+//    @BindView(R.id.footer) TextView footer;
+
     String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     int queryPage = 0;
 
-    GridView gvResults;
+    RecyclerView rvArticles;
     Toolbar toolbar;
     AsyncHttpClient client;
 
@@ -73,33 +77,36 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
     }
 
     public void setupViews() {
-        gvResults = (GridView) findViewById(R.id.gvResults);
+        rvArticles = (RecyclerView) findViewById(R.id.rvArticles);
         articles = new ArrayList<>();
         adapter = new ArticleArrayAdapter(this, articles);
-        gvResults.setAdapter(adapter);
+        rvArticles.setAdapter(adapter);
         client = new AsyncHttpClient();
+        StaggeredGridLayoutManager gridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        gridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        rvArticles.setLayoutManager(gridLayoutManager);
 
-        //hook up listener for grid click
-        gvResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //create intent to display article
-                Intent i = new Intent(getApplicationContext(), ArticleActivity.class);
-                Article article = articles.get(position);
-                i.putExtra("article", article);
-                startActivity(i);
-            }
-        });
-        gvResults.setOnScrollListener(new EndlessScrollListener() {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                if (page == 5) {
-                    Toast.makeText(getApplicationContext(), "Reached max articles", Toast.LENGTH_LONG).show();
-                    return true;
+        ItemClickSupport.addTo(rvArticles).setOnItemClickListener(
+                new ItemClickSupport.OnItemClickListener() {
+                    @Override
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                        Intent i = new Intent(getApplicationContext(), ArticleActivity.class);
+                        Article article = articles.get(position);
+                        i.putExtra("article", article);
+                        startActivity(i);
+                    }
                 }
-                queryPage = page;
-                articleSearch();
-                return true;
+        );
+        rvArticles.addOnScrollListener(new EndlessRecyclerViewScrollListener(gridLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                if (page >= 2) {
+                    Toast.makeText(getApplicationContext(), "Reached max articles", Toast.LENGTH_LONG).show();
+                    return;
+                } else {
+                    queryPage = page;
+                    articleSearch();
+                }
             }
         });
     }
@@ -114,7 +121,9 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
             public boolean onQueryTextSubmit(String query) {
                 // perform query here
                 queryTerm = query;
-                adapter.clear();
+                int curSize = adapter.getItemCount();
+                articles.clear();
+                adapter.notifyItemRangeRemoved(curSize, curSize);
                 queryPage = 0;
                 articleSearch();
                 // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
@@ -170,13 +179,15 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
             String newsDeskQuery = TextUtils.join(" ", newsArrayValues);
             params.put("fq", "news_desk:(" + newsDeskQuery + ")");
         }
-
+        final int curSize = adapter.getItemCount();
         client.get(url, params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
                     JSONArray articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
-                    adapter.addAll(Article.fromJSONArray(articleJsonResults));
+                    articles.addAll(Article.fromJSONArray(articleJsonResults));
+                    adapter.notifyItemRangeChanged(curSize, articleJsonResults.length());
+                    // rvArticles.scrollToPosition(adapter.getItemCount() - 1);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -192,19 +203,10 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
         sortOrder = sortOrderString;
         newsArrayValues = newsDeskValues;
         queryPage = 0;
-        adapter.clear();
+        int curSize = adapter.getItemCount();
+        articles.clear();
+        adapter.notifyItemRangeRemoved(curSize, curSize);
         articleSearch();
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == REQUEST_SETTINGS_CODE) {
-            dateString = data.getStringExtra("date");
-            sortOrder = data.getStringExtra("sortOrder");
-            newsArrayValues = data.getStringArrayListExtra("newsDesk");
-            queryPage = 0;
-            adapter.clear();
-            articleSearch();
-        }
     }
 
     public String formatDateQuery(String dateString) {

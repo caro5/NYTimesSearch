@@ -49,6 +49,7 @@ public class ArticleActivity extends AppCompatActivity {
         WebView wvArticle = (WebView) findViewById(R.id.wvArticle);
 
         shareIntent.putExtra(Intent.EXTRA_TEXT, wvArticle.getUrl());
+        shareIntent.setAction(Intent.ACTION_SEND);
 
         miShare.setShareIntent(shareIntent);
         return super.onCreateOptionsMenu(menu);

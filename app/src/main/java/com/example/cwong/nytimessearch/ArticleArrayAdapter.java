@@ -1,51 +1,89 @@
 package com.example.cwong.nytimessearch;
 
 import android.content.Context;
-import android.text.TextUtils;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.cwong.nytimessearch.models.Article;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.List;
 
 /**
  * Created by cwong on 8/8/16.
  */
-public class ArticleArrayAdapter extends ArrayAdapter<Article> {
-    public ArticleArrayAdapter(Context context, List<Article> articles) {
-        super(context, android.R.layout.simple_list_item_1, articles);
+public class ArticleArrayAdapter extends RecyclerView.Adapter<ArticleArrayAdapter.ViewHolder> implements View.OnClickListener, Target {
+    DynamicHeightImageView articleImageView;
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public DynamicHeightImageView imageView;
+        public TextView titleView;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            imageView = (DynamicHeightImageView) itemView.findViewById(R.id.ivImage);
+            titleView = (TextView) itemView.findViewById(R.id.tvTitle);
+        }
+    }
+
+    private List<Article> articles;
+    private Context context;
+
+    public ArticleArrayAdapter(Context c, List<Article> art) {
+        context = c;
+        articles = art;
+    }
+    private Context getContext() {
+        return context;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        //get data item for position
-        Article article = getItem(position);
+    public ArticleArrayAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
 
-        //check to see if existing view being resused
-        //not using recycled view -> inflate layout
-        if (convertView == null) {
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            convertView = inflater.inflate(R.layout.item_article_result, parent, false);
-        }
-        //find image view
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.ivImage);
-        //clear out recycled image from convertView from lastTime
-        imageView.setImageResource(0);
-
-        TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-        tvTitle.setText(article.getHeadline());
-
-        //populate thumbnail image
-        String thumbnail = article.getThumbnail();
-        if (!TextUtils.isEmpty(thumbnail)) {
-            Picasso.with(getContext()).load(thumbnail).into(imageView);
-        }
-        return convertView;
+        View articleView = inflater.inflate(R.layout.item_articlegrid, parent, false);
+        ViewHolder viewHolder = new ViewHolder(articleView);
+        return viewHolder;
     }
+
+    @Override
+    public void onBindViewHolder(ArticleArrayAdapter.ViewHolder viewHolder, int position) {
+        articleImageView = viewHolder.imageView;
+        Article article = articles.get(position);
+        if (article.getThumbnail().length() > 0) {
+            Picasso.with(getContext()).load(article.getThumbnail()).into(articleImageView);
+        }
+        TextView articleTitleView = viewHolder.titleView;
+        if (article.getHeadline().length() > 0) {
+            articleTitleView.setText(article.getHeadline());
+        }
+    }
+    @Override
+    public int getItemCount() {
+        return articles.size();
+    }
+    @Override
+    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+        // Calculate the image ratio of the loaded bitmap
+        float ratio = (float) bitmap.getHeight() / (float) bitmap.getWidth();
+        // Set the ratio for the image
+        articleImageView.setHeightRatio(ratio);
+        // Load the image into the view
+        articleImageView.setImageBitmap(bitmap);
+    }
+    @Override
+    public void onBitmapFailed(Drawable d) {}
+
+    @Override
+    public void onPrepareLoad(Drawable d) {}
+
+    @Override
+    public void onClick(View v) {}
 }
