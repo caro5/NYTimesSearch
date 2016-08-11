@@ -39,18 +39,17 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import cz.msebera.android.httpclient.Header;
 
 public class SearchActivity extends AppCompatActivity implements SettingsFragment.SettingsDialogListener {
-//    @BindView(R.id.rvArticles) RecyclerView rArticles;
-//    @BindView(R.id.subtitle) TextView subtitle;
-//    @BindView(R.id.footer) TextView footer;
+    @BindView(R.id.rvArticles) RecyclerView rvArticles;
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     int queryPage = 0;
 
-    RecyclerView rvArticles;
-    Toolbar toolbar;
     AsyncHttpClient client;
 
     ArrayList<Article> articles;
@@ -66,7 +65,8 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.bind(this);
+
         setSupportActionBar(toolbar);
         dateString = "";
         sortOrder = "";
@@ -77,7 +77,6 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
     }
 
     public void setupViews() {
-        rvArticles = (RecyclerView) findViewById(R.id.rvArticles);
         articles = new ArrayList<>();
         adapter = new ArticleArrayAdapter(this, articles);
         rvArticles.setAdapter(adapter);

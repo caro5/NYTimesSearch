@@ -116,6 +116,8 @@ public class SettingsFragment extends android.support.v4.app.DialogFragment {
         getDialog().getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
+
+
     public void onFinishDatePicking(int year, int month, int day) {
         final Calendar c = Calendar.getInstance();
         c.set(Calendar.YEAR, year);
