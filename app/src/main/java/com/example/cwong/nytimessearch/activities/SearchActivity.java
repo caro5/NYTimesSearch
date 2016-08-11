@@ -99,7 +99,7 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
         rvArticles.addOnScrollListener(new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                if (page >= 2) {
+                if (page >= 5) {
                     Toast.makeText(getApplicationContext(), "Reached max articles", Toast.LENGTH_LONG).show();
                     return;
                 } else {

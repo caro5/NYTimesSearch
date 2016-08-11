@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--android:id="@+id/edit_name"-->
-<!--android:layout_width="wrap_content" android:layout_height="wrap_content"-->
-<!--android:layout_gravity="center" android:orientation="vertical"  >-->
-
-<!--<TextView-->
-    <!--android:id="@+id/lbl_your_name" android:text="Your name"-->
-    <!--android:layout_width="wrap_content" android:layout_height="wrap_content" />-->
-
-<!--<EditText-->
-    <!--android:id="@+id/txt_your_name"-->
-    <!--android:layout_width="match_parent"  android:layout_height="wrap_content"-->
-    <!--android:inputType="text"-->
-    <!--android:imeOptions="actionDone" />-->
-<!--</LinearLayout>-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:app="http://schemas.android.com/apk/res-auto"
 xmlns:tools="http://schemas.android.com/tools"
@@ -24,68 +9,56 @@ android:paddingLeft="@dimen/activity_horizontal_margin"
 android:paddingRight="@dimen/activity_horizontal_margin"
 android:paddingTop="@dimen/activity_vertical_margin"
 app:layout_behavior="@string/appbar_scrolling_view_behavior"
-tools:context="com.example.cwong.nytimessearch.activities.SettingsActivity">
+tools:context="com.example.cwong.nytimessearch.fragments.SettingsFragment">
     <FrameLayout
     android:id="@+id/child_fragment_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" />
-<TextView
+
+    <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceSmall"
     android:text="@string/start_date"
     android:id="@+id/tvStartDate"
-    android:textSize="12dp"
-    android:layout_alignParentTop="true"
-    android:layout_alignParentLeft="true"
-    android:layout_alignParentStart="true"
-    android:layout_alignRight="@+id/tvNewsDesk"
-    android:layout_alignEnd="@+id/tvNewsDesk" />
-
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="@string/sort_order"
-    android:id="@+id/tvSortOrder"
-    android:textAppearance="?android:attr/textAppearanceSmall"
-    android:layout_below="@+id/etDate"
+    android:layout_below="@+id/child_fragment_container"
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true" />
 
-<EditText
+    <EditText
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:inputType="date"
     android:ems="10"
     android:id="@+id/etDate"
-    android:layout_alignParentTop="true"
-    android:layout_alignParentRight="true"
-    android:layout_alignParentEnd="true"
-    android:layout_alignLeft="@+id/cbArts"
-    android:layout_alignStart="@+id/cbArts" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignLeft="@+id/spinnerSort"
+        android:layout_alignStart="@+id/spinnerSort" />
 
-<Spinner
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_order"
+        android:id="@+id/tvSortOrder"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/etDate"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:paddingTop="10dp" />
+
+    <Spinner
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:id="@+id/spinnerSort"
     android:entries="@array/sort_array"
-    android:layout_alignTop="@+id/tvSortOrder"
-    android:layout_alignParentRight="true"
-    android:layout_alignParentEnd="true"
-    android:layout_alignLeft="@+id/etDate"
-    android:layout_alignStart="@+id/etDate" />
+        android:layout_below="@+id/etDate"
+        android:paddingTop="10dp"
+        android:layout_alignLeft="@+id/cbArts"
+        android:layout_alignStart="@+id/cbArts" />
 
-<Button
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="@string/save"
-    android:id="@+id/btnSaveSettings"
-    android:layout_marginBottom="93dp"
-    android:layout_alignParentBottom="true"
-    android:layout_alignRight="@+id/spinnerSort"
-    android:layout_alignEnd="@+id/spinnerSort" />
-
-<TextView
+    <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceSmall"
@@ -95,7 +68,7 @@ tools:context="com.example.cwong.nytimessearch.activities.SettingsActivity">
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true" />
 
-<CheckBox
+    <CheckBox
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="@string/arts"
@@ -105,7 +78,7 @@ tools:context="com.example.cwong.nytimessearch.activities.SettingsActivity">
     android:layout_alignLeft="@+id/cbFashionStyle"
     android:layout_alignStart="@+id/cbFashionStyle" />
 
-<CheckBox
+    <CheckBox
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="@string/fashion_style"
@@ -115,7 +88,7 @@ tools:context="com.example.cwong.nytimessearch.activities.SettingsActivity">
     android:layout_alignParentRight="true"
     android:layout_alignParentEnd="true" />
 
-<CheckBox
+    <CheckBox
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="@string/sports"
@@ -124,6 +97,16 @@ tools:context="com.example.cwong.nytimessearch.activities.SettingsActivity">
     android:layout_below="@+id/cbFashionStyle"
     android:layout_alignLeft="@+id/cbFashionStyle"
     android:layout_alignStart="@+id/cbFashionStyle" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save"
+        android:id="@+id/btnSaveSettings"
+        android:layout_marginBottom="93dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/spinnerSort"
+        android:layout_alignEnd="@+id/spinnerSort" />
 
 
 </RelativeLayout>
