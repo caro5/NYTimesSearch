@@ -27,7 +27,7 @@ import java.util.Locale;
 /**
  * Created by cwong on 8/10/16.
  */
-public class SettingsFragment extends android.support.v4.app.DialogFragment implements DatePickerFragment.DatePickerDialogListener {
+public class SettingsFragment extends android.support.v4.app.DialogFragment {
     EditText etDate;
     Button btnSave;
     Spinner spinner;
