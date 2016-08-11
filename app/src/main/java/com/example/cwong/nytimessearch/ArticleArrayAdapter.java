@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.cwong.nytimessearch.models.Article;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -60,7 +61,7 @@ public class ArticleArrayAdapter extends RecyclerView.Adapter<ArticleArrayAdapte
         articleImageView = viewHolder.imageView;
         Article article = articles.get(position);
         if (article.getThumbnail().length() > 0) {
-            Picasso.with(getContext()).load(article.getThumbnail()).into(articleImageView);
+            Glide.with(getContext()).load(article.getThumbnail()).centerCrop().into(articleImageView);
         }
         TextView articleTitleView = viewHolder.titleView;
         if (article.getHeadline().length() > 0) {

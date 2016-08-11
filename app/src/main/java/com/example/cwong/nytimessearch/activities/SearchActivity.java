@@ -81,7 +81,7 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
         adapter = new ArticleArrayAdapter(this, articles);
         rvArticles.setAdapter(adapter);
         client = new AsyncHttpClient();
-        StaggeredGridLayoutManager gridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager gridLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
         gridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
         rvArticles.setLayoutManager(gridLayoutManager);
 
