@@ -151,7 +151,7 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
 
     public void articleSearch() {
         if (!isOnline() || !isNetworkAvailable()) {
-            Toast.makeText(this, "Device connected to the internet", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Please check internet connection", Toast.LENGTH_LONG).show();
             return;
         }
 

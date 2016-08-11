@@ -3,7 +3,6 @@ package com.example.cwong.nytimessearch.fragments;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +18,7 @@ import android.widget.Spinner;
 
 import com.example.cwong.nytimessearch.R;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -106,7 +106,8 @@ public class SettingsFragment extends android.support.v4.app.DialogFragment impl
             @Override
             public void onClick(View v) {
                 SettingsDialogListener listener = (SettingsDialogListener) getActivity();
-                listener.onFinishSettingsDialog(date, sortOrder, newsDeskValues);
+                sortOrder = spinner.getSelectedItem().toString();
+                listener.onFinishSettingsDialog(date, sortOrder, checkedValues);
                 // Close the dialog and return back to the parent activity
                 dismiss();
             }
@@ -122,12 +123,19 @@ public class SettingsFragment extends android.support.v4.app.DialogFragment impl
         c.set(Calendar.DAY_OF_MONTH, day);
         String format = "MM/dd/yyyy";
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
-        etDate.setText(sdf.format(c.getTime()));
+        date = sdf.format(c.getTime());
+        etDate.setText(date);
     }
     public void showDatePickerDialog(View v) {
-        FragmentManager fm = getFragmentManager();
-        // Use the current time as the default values for the picker
+        String format = "MM/dd/yyyy";
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
         final Calendar c = Calendar.getInstance();
+
+        try {
+            c.setTime(sdf.parse(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         int year = c.get(Calendar.YEAR);
         int month = c.get(Calendar.MONTH);
         int day = c.get(Calendar.DAY_OF_MONTH);
@@ -139,7 +147,6 @@ public class SettingsFragment extends android.support.v4.app.DialogFragment impl
                 onFinishDatePicking(year, monthOfYear, dayOfMonth);
             }
         };
-
 
         DatePickerDialog dg = new DatePickerDialog(getActivity(), listener, year, month, day);
         dg.show();
