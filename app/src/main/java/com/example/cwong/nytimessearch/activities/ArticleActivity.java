@@ -14,6 +14,8 @@ import android.webkit.WebViewClient;
 import com.example.cwong.nytimessearch.R;
 import com.example.cwong.nytimessearch.models.Article;
 
+import org.parceler.Parcels;
+
 public class ArticleActivity extends AppCompatActivity {
     private ShareActionProvider miShareAction;
 
@@ -24,7 +26,7 @@ public class ArticleActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Article article = (Article) getIntent().getSerializableExtra("article");
+        Article article = Parcels.unwrap((getIntent().getParcelableExtra("article")));
         toolbar.setTitle(article.getHeadline());
         WebView webView = (WebView) findViewById(R.id.wvArticle);
 

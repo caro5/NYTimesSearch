@@ -31,6 +31,7 @@ import com.loopj.android.http.RequestParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.parceler.Parcels;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -91,7 +92,7 @@ public class SearchActivity extends AppCompatActivity implements SettingsFragmen
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Intent i = new Intent(getApplicationContext(), ArticleActivity.class);
                         Article article = articles.get(position);
-                        i.putExtra("article", article);
+                        i.putExtra("article", Parcels.wrap(article));
                         startActivity(i);
                     }
                 }

@@ -1,8 +1,6 @@
 package com.example.cwong.nytimessearch;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +9,6 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.cwong.nytimessearch.models.Article;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.util.List;
 
@@ -22,7 +18,7 @@ import butterknife.ButterKnife;
 /**
  * Created by cwong on 8/8/16.
  */
-public class ArticleArrayAdapter extends RecyclerView.Adapter<ArticleArrayAdapter.ViewHolder> implements View.OnClickListener, Target {
+public class ArticleArrayAdapter extends RecyclerView.Adapter<ArticleArrayAdapter.ViewHolder> {
     DynamicHeightImageView articleImageView;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -72,21 +68,5 @@ public class ArticleArrayAdapter extends RecyclerView.Adapter<ArticleArrayAdapte
     public int getItemCount() {
         return articles.size();
     }
-    @Override
-    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-        // Calculate the image ratio of the loaded bitmap
-        float ratio = (float) bitmap.getHeight() / (float) bitmap.getWidth();
-        // Set the ratio for the image
-        articleImageView.setHeightRatio(ratio);
-        // Load the image into the view
-        articleImageView.setImageBitmap(bitmap);
-    }
-    @Override
-    public void onBitmapFailed(Drawable d) {}
 
-    @Override
-    public void onPrepareLoad(Drawable d) {}
-
-    @Override
-    public void onClick(View v) {}
 }
